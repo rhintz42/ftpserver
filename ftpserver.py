@@ -45,10 +45,11 @@ def init_arg_parser():
     parser = argparse.ArgumentParser()
 
     # parser.add_argument('-d', '--download', nargs='+')
-    parser.add_argument('url')
+    parser.add_argument('url', nargs='?')
     parser.add_argument('filename', nargs='?')
     parser.add_argument('-d', '--download', action='store_true')
     parser.add_argument('-o', '--outfile')
+    parser.add_argument('-f', '--file')
 
     # Be able to provide file to parse
     # parser.add_argument('-f', '--file')
@@ -64,6 +65,34 @@ def parse_arg_input(parser):
     return args
 
 
+def execute_command(command):
+    tokens = command.split()
+    
+    type_ = tokens[0]
+    url = tokens[1]
+    outfile = tokens[2]
+
+    download(url, outfile)
+    executed_commands_file = open('executed_commands.txt', 'a')
+    executed_commands_file.write(command)
+    executed_commands_file.close()
+
+
+def execute_file_commands(filepath, num_to_execute=None):
+    while True:
+        with open(filepath, 'r+') as commands_to_execute_file:
+            commands = commands_to_execute_file.readlines()
+            if len(commands) == 0:
+                return
+            command = commands[0]
+            commands_to_execute_file.seek(0)
+            commands_to_execute_file.write(''.join(commands[1:]))
+            commands_to_execute_file.truncate()
+            if command.isspace():
+                continue
+        execute_command(command)
+
+
 def main():
     # TODO: Check to make sure that the server is configured and currently
     #   running
@@ -73,7 +102,11 @@ def main():
 
     parser = init_arg_parser()
     args = parse_arg_input(parser)
+
+    if args.__contains__('file') and args.file:
+        execute_file_commands(args.file)
     
+    """
     # Get Settings (like the outfile)
     outfile = None
     if args.__contains__('outfile'):
@@ -88,6 +121,7 @@ def main():
         files_to_download.append(args.url)
 
         download(files_to_download[0], outfile)
+    """
 
 if __name__ == '__main__':
     main()

@@ -1,2 +1,6 @@
 *.swp
 *.pyc
+*.mp4
+*.flv
+executed_commands.txt
+download_file.txt
