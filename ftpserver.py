@@ -2,8 +2,14 @@
 import argparse
 import subprocess
 import os
+import shutil
+from ftplib import FTP
 
 supported_extensions = ('.mp4', '.flv', '.pdf', '.txt')
+
+
+# TODO
+#class FTPServer(object):
 
 
 def download_youtube_video(url, outfile):
@@ -29,6 +35,10 @@ def outfile_has_supported_extension(outfile):
     return False
 
 
+def is_relative_path(outfile):
+    return len(outfile) >= 0 and outfile[0] != '/'
+
+
 def download(url, outfile):
     if is_youtube_video(url):
         full_path = download_youtube_video(url, outfile)
@@ -50,6 +60,7 @@ def init_arg_parser():
     parser.add_argument('-d', '--download', action='store_true')
     parser.add_argument('-o', '--outfile')
     parser.add_argument('-f', '--file')
+    parser.add_argument('-t', '--type')
 
     # Be able to provide file to parse
     # parser.add_argument('-f', '--file')
@@ -65,6 +76,29 @@ def parse_arg_input(parser):
     return args
 
 
+def parse_settings(file_path):
+    pass
+
+
+def ftp_init_connection(settings):
+    pass
+
+
+def ftp_upload_video(local_file_path, remote_file_name='', remote_file_dir=''):
+    local_filename = local_file_path.split('/')[-1]
+
+    print("Connecting to FTP")
+    ftp = FTP(### PUT SERVER AND SUCH INFO HERE)
+    local_file = open(local_file_path, 'rb')
+
+    print("Uploading video up on ftp server")
+    ftp.storbinary('STOR %s/%s' %(remote_file_dir, local_filename), local_file)
+
+    print("Finished uploading video")
+    local_file.close()
+    ftp.close()
+    print("Closing Connection to FTP server")
+
 def execute_command(command):
     tokens = command.split()
     
@@ -72,10 +106,16 @@ def execute_command(command):
     url = tokens[1]
     outfile = tokens[2]
 
+    if is_relative_path(outfile):
+        outfile = "/tmp/%s" % outfile
+
     download(url, outfile)
+
     executed_commands_file = open('executed_commands.txt', 'a')
     executed_commands_file.write(command)
     executed_commands_file.close()
+
+    ftp_upload_video(outfile, remote_file_dir='/Media_Drive/shows_to_watch')
 
 
 def execute_file_commands(filepath, num_to_execute=None):
